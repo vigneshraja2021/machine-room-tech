@@ -1,0 +1,33 @@
+# Continue config used in the video (tested on a CPU-only laptop). Copy to ~/.continue/config.yaml
+name: Machine Room Local
+version: 1.0.0
+schema: v1
+
+# Continue's chat/edit models. Pull both models with the setup script; choose per task in Continue.
+models:
+  - name: Qwen2.5 Coder 3B
+    provider: ollama
+    model: qwen2.5-coder:3b
+    roles: [chat, edit, apply]
+  - name: Qwen2.5 Coder 7B
+    provider: ollama
+    model: qwen2.5-coder:7b
+    roles: [chat, edit, apply]
+  # Small model reserved for inline autocomplete so it responds sooner on CPU-only laptops.
+  - name: Qwen2.5 Coder 1.5B (autocomplete)
+    provider: ollama
+    model: qwen2.5-coder:1.5b-base
+    roles: [autocomplete]
+    defaultCompletionOptions:
+      temperature: 0
+      maxTokens: 200
+      # Stop tokens prevent the completion from running into unrelated code; the list ends at function boundaries.
+      stop: ["\n\n", "\ndef ", "\nclass ", "\nif __name__", "<|endoftext|>", "<|fim_prefix|>", "<|fim_suffix|>", "<|fim_middle|>", "<|fim_pad|>", "<|file_sep|>", "<|repo_name|>"]
+    autocompleteOptions:
+      debounceDelay: 300
+      # Continue's default 150 ms timeout truncates CPU suggestions to one line; 6000 ms lets the model finish.
+      modelTimeout: 6000
+      # Disable caching so each completion reflects the current cursor context.
+      useCache: false
+      # Disable transforms that can alter or shorten the raw CPU completion.
+      transform: false
