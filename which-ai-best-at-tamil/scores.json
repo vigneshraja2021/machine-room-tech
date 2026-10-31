@@ -1,0 +1,137 @@
+{
+ "judge": "Claude (Opus), blind: shuffled letters, names hidden, answer key",
+ "rounds": {
+  "r1": {
+   "gemini": {
+    "score": 4,
+    "reason": "Meaning and the ripe-mango example are clear and correct. The adhikaram is mangled into made-up names (இன்சொல் கூமை, இன்சொல்வழாமை) with stray Bengali script, so it is capped at 4."
+   },
+   "nemotron-35-bolt-e4b": {
+    "score": 4,
+    "reason": "The basic meaning and the sad-friend example are fine. It names a non-existent adhikaram and later muddles the fruit analogy, so it is capped at 4."
+   },
+   "gemma4-e4b": {
+    "score": 3,
+    "reason": "Meaning is roughly right, though a Bengali word slips in. The adhikaram section is hedged nonsense (குறையாத செம்மை, அகத்திணை, a 'fifth root' grammar rule)."
+   },
+   "qwen35-4b": {
+    "score": 1,
+    "reason": "The explanation has nothing to do with the kural and the example is incoherent. The chapter it names does not exist."
+   },
+   "chatgpt": {
+    "score": 10,
+    "reason": "Correctly identifies Kural 100 in இனியவை கூறல் (adhikaram 10), explains the fruit analogy clearly, and gives a natural, relatable child-breaks-a-glass example."
+   }
+  },
+  "r2": {
+   "chatgpt": {
+    "score": 7,
+    "reason": "Captures the core idea of measured, thrifty use even when it seems pointless, with sensible situations. Reading it literally as pouring water into a river is off, and the cooking example is a little weak."
+   },
+   "nemotron-35-bolt-e4b": {
+    "score": 5,
+    "reason": "Drifts to planning and avoiding hasty decisions; the 'keep count even when giving it away' sense is mostly missing. The investment example is in natural spoken Tamil."
+   },
+   "qwen35-4b": {
+    "score": 1,
+    "reason": "Completely wrong meaning about trust and tying someone up and throwing them in a river, called a song from old literature. Repetitive, broken Tamil."
+   },
+   "gemma4-e4b": {
+    "score": 4,
+    "reason": "Confidently claims 'putting in the river' means a big, challenging task, turning the proverb into 'give full effort'. Fluent Tamil, but an invented meaning caps it at 4."
+   },
+   "gemini": {
+    "score": 9,
+    "reason": "Exactly right: even money as good as thrown away should be spent with count; good situation and a natural father-son example. Minor slip: 'அறிவுரைக் கூறினார்' has an extra க்."
+   }
+  },
+  "r3": {
+   "gemini": {
+    "score": 4,
+    "reason": "Correctly gets ன் → ற் (திரிதல்) and the dropped ம் in மரம், but contradicts itself and states a false உடம்படுமெய் 'ய்' rule, calling ர and வே vowels. Broken formula formatting; capped at 4."
+   },
+   "qwen35-4b": {
+    "score": 1,
+    "reason": "Invents a non-existent 'ஆந்த' rule, splits wrongly (பொன் + குட, மர + வேர்) and produces nonsense like பொன்னுக்குடம். Rambled until it was cut off."
+   },
+   "chatgpt": {
+    "score": 4,
+    "reason": "Clean and correct for பொற்குடம் (ன் → ற், மெய் திரிதல்). For மரவேர் it wrongly says ம் turns into வ் instead of simply dropping (கெடுதல்); capped at 4."
+   },
+   "gemma4-e4b": {
+    "score": 3,
+    "reason": "Both splits are correct, but it calls பொற்குடம் a 'மிகுதல்' case with made-up terms and labels மரவேர் 'ஒட்டுநிலை', missing that ம் drops."
+   },
+   "nemotron-35-bolt-e4b": {
+    "score": 2,
+    "reason": "Splits correctly but confidently says both are விகாரமற்ற புணர்ச்சி with no change at all, which is wrong for both; also mislabels ன் as 'உயிர்மெய் வல்லினம்'."
+   }
+  },
+  "r4": {
+   "qwen35-4b": {
+    "score": 1,
+    "reason": "Translates line 1 as 'we should take the bus' and line 2 as 'you've missed the bus'; இம்புட்டு and மெர்சல் are explained with nonsense."
+   },
+   "gemini": {
+    "score": 9,
+    "reason": "Accurate, natural English for both lines with correct glosses for வெரசா, மெர்சல் and கலாய். Only the alternate 'triggered' slightly misses the nuance."
+   },
+   "gemma4-e4b": {
+    "score": 3,
+    "reason": "Line 1 is excellent. Line 2 invents a meaning for மெர்சல் ('did you totally fail / get busted'), and a stray 'ramach' token appears; capped."
+   },
+   "chatgpt": {
+    "score": 10,
+    "reason": "Both translations sound like real English ('Did I freak you out? I was just messing with you'), every slang word is glossed correctly, plus a useful tone comparison."
+   },
+   "nemotron-35-bolt-e4b": {
+    "score": 4,
+    "reason": "Line 1 is close ('is it this late?'). Line 2 offers 'melted' and explains மெர்சல் as getting very angry or over-emotional, which is wrong; capped at 4."
+   }
+  },
+  "r5": {
+   "qwen35-4b": {
+    "score": 1,
+    "reason": "Contains a broken word (பonselின்) and nonsense like 'வாட்ஸ்அப் சமன்கள்... டாப் செய்யப்பட்டால்'; the delete-old-WhatsApp-videos instruction is lost."
+   },
+   "gemini": {
+    "score": 9,
+    "reason": "Correct, warm spoken Tamil with familiar loanwords (போன், டெலிட், ஆன் பண்ணு), plus an even simpler second version. Tiny oddity: 'போயிப்பிடாம'."
+   },
+   "nemotron-35-bolt-e4b": {
+    "score": 8,
+    "reason": "Natural spoken Tamil addressed to Amma/Appa with a handy summary. A Vietnamese word 'chỗ' slips into the explanation note."
+   },
+   "gemma4-e4b": {
+    "score": 6,
+    "reason": "Version 3 is natural, but version 1 uses the stiff coined word மேகக் கோப்பு and version 2 drops the German word 'Speicher' mid-sentence."
+   },
+   "chatgpt": {
+    "score": 7,
+    "reason": "Faithful and easy to follow, and explains cloud backup simply instead of coining a word. Reads like formal written Tamil rather than how you would talk to parents."
+   }
+  },
+  "r6": {
+   "chatgpt": {
+    "score": 7,
+    "reason": "About 50 words, correct Tamil, and an emotional twist that plays on the girl's name நிலா (moon). The setup is a little muddled about who knocked and left the gifts."
+   },
+   "nemotron-35-bolt-e4b": {
+    "score": 4,
+    "reason": "Short, correct Diwali-eve scene, but the 'twist' (his hand puppet vanished when the crackers burst) is unclear and has no payoff."
+   },
+   "gemma4-e4b": {
+    "score": 3,
+    "reason": "Readable but with odd images (cracker powder sprinkled on houses, a bright moon on new-moon Diwali eve), and the ending is just a deflated balloon, not a twist."
+   },
+   "gemini": {
+    "score": 6,
+    "reason": "About 70 words with a genuine twist (grandma's jasmine and letter in the cracker box). Spelling slips (இமட்டாமல், தலைக்கீழாக) and a muddled letter line cost points."
+   },
+   "qwen35-4b": {
+    "score": 1,
+    "reason": "Mostly nonsense sentences ('வெளிநாட்டில் புத்தகங்கள் மட்டுமே எரிந்தது', 'திருவிக்க') with no clear plot or twist."
+   }
+  }
+ }
+}
