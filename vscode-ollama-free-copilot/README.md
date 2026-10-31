@@ -2,7 +2,7 @@
 
 Companion to the Machine Room Tech video **"VS Code + Ollama = FREE Copilot (Offline, No GPU)"** (English and Tamil versions).
 
-Video: (link added after upload)
+Video: [English](https://youtu.be/x1fmK_PxS1I) · [Tamil](https://youtu.be/5oMtUO-Acs4)
 
 This video sets up local code autocomplete and chat in VS Code using Ollama and Continue. Your prompts and code stay on your machine.
 
