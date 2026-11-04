@@ -73,3 +73,16 @@ Smaller models make mistakes, so review generated code. Agent mode is too slow o
 - **Suggestions are one line:** raise `modelTimeout` in `continue-config.yaml`; this config sets it to 6000 ms because Continue's default 150 ms timeout cuts CPU suggestions short.
 - **Nothing appears:** check `ollama list`, then open the Continue output panel in VS Code for errors.
 - **First suggestion is slow:** the model may need about 15 seconds to load the first time.
+- **`prediction aborted, token repeat limit reached`:** on a long run of spaces or tabs, the autocomplete model can repeat the same token until Ollama stops it after 30 repeats. Only that suggestion fails. To avoid it, add a repeat penalty:
+
+  1. Create a file named `Modelfile` containing:
+
+     ```text
+     FROM qwen2.5-coder:1.5b-base
+     PARAMETER repeat_penalty 1.15
+     ```
+
+  2. In that folder, run `ollama create qwen-autocomplete -f Modelfile`.
+  3. In `~/.continue/config.yaml`, change the autocomplete model to `model: qwen-autocomplete`, then reload VS Code.
+
+  Tested with direct requests to Ollama 0.40.14: the error stopped, and normal suggestions still worked with a slightly different style.
