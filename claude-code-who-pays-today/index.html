@@ -1,0 +1,1129 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b3a40">
+<title>Who Pays Today?</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
+<style>
+  :root {
+    --bg: #0b3a40;
+    --bg-ray: #0f464d;
+    --panel: #125058;
+    --cream: #fff6e0;
+    --cream-soft: #cfe3dc;
+    --ink: #1c1410;
+    --marigold: #ffb627;
+    --marigold-deep: #c97a00;
+    --error: #ffc2d4;
+    color-scheme: dark;
+  }
+
+  * { box-sizing: border-box; }
+
+  [hidden] { display: none !important; }
+
+  html { -webkit-text-size-adjust: 100%; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    min-height: 100dvh;
+    background: var(--bg);
+    color: var(--cream);
+    font-family: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", "Nunito", "Segoe UI", system-ui, sans-serif;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Hand-painted tea-stall sunburst behind everything */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: repeating-conic-gradient(from 0deg at 50% 38%, var(--bg-ray) 0 10deg, var(--bg) 10deg 20deg);
+  }
+
+  .app {
+    max-width: 1040px;
+    margin-inline: auto;
+    padding: calc(12px + env(safe-area-inset-top, 0px)) 16px calc(28px + env(safe-area-inset-bottom, 0px));
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  h1 {
+    margin: 0;
+    text-align: center;
+    font-size: clamp(2rem, 10vw, 3.25rem);
+    font-weight: 900;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    text-shadow: 0 3px 0 rgba(0, 0, 0, .35);
+  }
+  h1 span { color: var(--marigold); }
+
+  /* ---------- Wheel ---------- */
+  .wheel-wrap {
+    --wheel: clamp(240px, min(100vw - 32px, 100vh - 300px), 520px);
+    --wheel: clamp(240px, min(100vw - 32px, 100dvh - 300px), 520px);
+    position: relative;
+    width: var(--wheel);
+    aspect-ratio: 1;
+    margin: 12px auto 0;
+    border-radius: 50%;
+    box-shadow: 0 10px 0 rgba(0, 0, 0, .28), 0 18px 40px rgba(0, 0, 0, .35);
+  }
+
+  /* A rotated square is wider than its box; clipping stops it widening the page on phones */
+  .wheel-clip {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    overflow: hidden;
+  }
+
+  #wheel {
+    display: block;
+    width: 100%;
+    height: 100%;
+    will-change: transform;
+  }
+
+  .hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 22%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--cream);
+    border: 4px solid var(--ink);
+    box-shadow: 0 3px 0 rgba(0, 0, 0, .3);
+    font-size: calc(var(--wheel) * .1);
+    line-height: 1;
+    user-select: none;
+  }
+
+  .pointer {
+    position: absolute;
+    top: -14px;
+    left: 50%;
+    width: 44px;
+    height: 54px;
+    margin-left: -22px;
+    transform-origin: 50% 12px;
+    filter: drop-shadow(0 3px 0 rgba(0, 0, 0, .35));
+    pointer-events: none;
+  }
+
+  /* ---------- Result + Spin ---------- */
+  .result {
+    min-height: 88px;
+    margin-top: 6px;
+    padding: 10px 14px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    border-radius: 18px;
+  }
+  .result p { margin: 0; }
+  .result .line1 {
+    font-size: clamp(1.45rem, 6.5vw, 1.9rem);
+    font-weight: 900;
+    line-height: 1.15;
+    overflow-wrap: anywhere;
+  }
+  .result .line2 {
+    margin-top: 2px;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: var(--cream-soft);
+  }
+
+  .result.is-winner {
+    background: var(--cream);
+    color: var(--ink);
+    box-shadow: 0 5px 0 var(--marigold);
+    animation: pop .5s cubic-bezier(.2, 1.6, .4, 1);
+  }
+  .result.is-winner .line1 { font-size: clamp(2.1rem, 10vw, 2.75rem); }
+  .result.is-winner .line2 { color: var(--ink); }
+
+  @keyframes pop {
+    from { transform: scale(.7) rotate(-3deg); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+
+  button, input { font: inherit; }
+
+  #spin {
+    display: block;
+    width: 100%;
+    min-height: 68px;
+    margin-top: 12px;
+    border: 0;
+    border-radius: 20px;
+    background: var(--marigold);
+    color: var(--ink);
+    font-size: 1.6rem;
+    font-weight: 900;
+    letter-spacing: .01em;
+    cursor: pointer;
+    box-shadow: 0 7px 0 var(--marigold-deep);
+    touch-action: manipulation;
+    transition: transform .08s, box-shadow .08s;
+  }
+  #spin:active:not(:disabled) {
+    transform: translateY(5px);
+    box-shadow: 0 2px 0 var(--marigold-deep);
+  }
+  #spin:disabled {
+    background: #6f8f8c;
+    color: #10282a;
+    box-shadow: 0 7px 0 #3f5f60;
+    cursor: not-allowed;
+  }
+
+  :focus-visible {
+    outline: 3px solid var(--cream);
+    outline-offset: 3px;
+  }
+
+  /* ---------- Names ---------- */
+  .names {
+    margin-top: 22px;
+    padding: 16px;
+    border-radius: 20px;
+    background: var(--panel);
+  }
+
+  .names-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+  .names-head h2 { margin: 0; font-size: 1.15rem; font-weight: 800; }
+  .names-head span { color: var(--cream-soft); font-weight: 700; font-variant-numeric: tabular-nums; }
+
+  .add-form { display: flex; gap: 8px; }
+
+  #new-name {
+    flex: 1;
+    min-width: 0;
+    min-height: 48px;
+    padding: 0 14px;
+    border: 2px solid transparent;
+    border-radius: 14px;
+    background: var(--cream);
+    color: var(--ink);
+    font-size: 1rem; /* 16px stops iOS zooming on focus */
+    font-weight: 700;
+  }
+  #new-name::placeholder { color: #6d6253; font-weight: 600; }
+
+  #add {
+    min-height: 48px;
+    padding: 0 20px;
+    border: 2px solid var(--cream);
+    border-radius: 14px;
+    background: transparent;
+    color: var(--cream);
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  #add:active:not(:disabled) { background: rgba(255, 246, 224, .16); }
+
+  input:disabled, #add:disabled { opacity: .5; cursor: not-allowed; }
+
+  #form-msg {
+    min-height: 1.4em;
+    margin: 6px 2px 8px;
+    color: var(--error);
+    font-size: .92rem;
+    font-weight: 700;
+  }
+
+  #list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  #list li {
+    display: flex;
+    align-items: center;
+    max-width: 100%;
+    min-height: 44px;
+    padding-left: 14px;
+    border-radius: 999px;
+    color: var(--ink);
+    font-weight: 800;
+  }
+  #list .chip-name { overflow-wrap: anywhere; }
+  #list .chip-count {
+    flex: none;
+    margin-left: 7px;
+    font-size: .85rem;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  #list button {
+    flex: none;
+    width: 44px;
+    height: 44px;
+    border: 0;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--ink);
+    font-size: 1.3rem;
+    font-weight: 800;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  #list button:disabled { opacity: .35; cursor: not-allowed; }
+  #list button:focus-visible { outline-color: var(--ink); outline-offset: -5px; }
+
+  .empty { margin: 0; color: var(--cream-soft); font-weight: 600; }
+
+  .note { margin: 12px 2px 0; color: var(--cream-soft); font-size: .92rem; font-weight: 600; }
+
+  .paid-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .paid-tools button {
+    min-height: 44px;
+    padding: 0 14px;
+    border: 2px solid var(--cream-soft);
+    border-radius: 12px;
+    background: transparent;
+    color: var(--cream);
+    font-size: .92rem;
+    font-weight: 700;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  .paid-tools button:disabled { opacity: .5; cursor: not-allowed; }
+  #reset.is-armed { background: var(--error); border-color: var(--error); color: var(--ink); }
+
+  /* ---------- Full-screen winner ---------- */
+  body.winner-open { overflow: hidden; }
+
+  #winner-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 5; /* confetti stays on top */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2vh;
+    padding: calc(16px + env(safe-area-inset-top, 0px)) 16px calc(16px + env(safe-area-inset-bottom, 0px));
+    color: var(--ink);
+    text-align: center;
+    cursor: pointer;
+  }
+  #winner-screen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: repeating-conic-gradient(from 0deg at 50% 45%, rgba(255, 255, 255, .2) 0 10deg, transparent 10deg 20deg);
+  }
+
+  #winner-name {
+    display: inline-block;
+    margin: 0;
+    font-weight: 900;
+    line-height: 1;
+    letter-spacing: -0.03em;
+    white-space: pre;
+    animation: slam .55s cubic-bezier(.2, 1.5, .4, 1);
+  }
+
+  #winner-line {
+    margin: 0;
+    font-size: clamp(1.6rem, min(9vw, 11vh), 4.5rem);
+    font-weight: 900;
+    line-height: 1.1;
+    animation: slam .55s .12s cubic-bezier(.2, 1.5, .4, 1) backwards;
+  }
+
+  #winner-close {
+    min-height: 52px;
+    margin-top: 1vh;
+    padding: 0 34px;
+    border: 0;
+    border-radius: 16px;
+    background: var(--ink);
+    color: var(--cream);
+    font-size: 1.1rem;
+    font-weight: 800;
+    cursor: pointer;
+    touch-action: manipulation;
+  }
+  #winner-close:focus-visible { outline-color: var(--ink); }
+
+  @keyframes slam {
+    from { transform: scale(2.2); opacity: 0; }
+    to { transform: none; opacity: 1; }
+  }
+
+  #confetti {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  /* Side by side on tablets, laptops and sideways phones */
+  @media (min-width: 800px) {
+    .app {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      column-gap: 40px;
+      align-items: center;
+    }
+    h1 { grid-column: 1 / -1; }
+    .stage { align-self: start; }
+    .wheel-wrap {
+      --wheel: clamp(240px, min(50vw - 48px, 100vh - 110px), 560px);
+      --wheel: clamp(240px, min(50vw - 48px, 100dvh - 110px), 560px);
+    }
+    .names { margin-top: 20px; }
+    body::before { background-position: center; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .result.is-winner, #winner-name, #winner-line { animation: none; }
+    #spin { transition: none; }
+  }
+</style>
+</head>
+<body>
+<main class="app">
+  <h1>Who Pays <span>Today?</span></h1>
+
+  <section class="stage" aria-label="Spin wheel">
+    <div class="wheel-wrap" id="wheel-wrap">
+      <div class="wheel-clip"><canvas id="wheel" role="img" aria-label="Spin wheel"></canvas></div>
+      <div class="hub" aria-hidden="true">☕</div>
+      <svg class="pointer" id="pointer" viewBox="0 0 44 54" aria-hidden="true">
+        <path d="M4 12a18 10 0 0 1 36 0L22 52Z" fill="#fff6e0" stroke="#1c1410" stroke-width="4" stroke-linejoin="round"/>
+        <circle cx="22" cy="13" r="5" fill="#ff5d8f" stroke="#1c1410" stroke-width="3"/>
+      </svg>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="result" id="result" role="status" aria-live="polite">
+      <p class="line1" id="line1"></p>
+      <p class="line2" id="line2"></p>
+    </div>
+
+    <button id="spin" type="button">Spin</button>
+
+    <div class="names">
+      <div class="names-head">
+        <h2>On the wheel</h2>
+        <span id="count"></span>
+      </div>
+      <form class="add-form" id="add-form" autocomplete="off">
+        <input id="new-name" type="text" maxlength="16" placeholder="Add a friend" aria-label="Friend's name" enterkeyhint="done" autocapitalize="words">
+        <button id="add" type="submit">Add</button>
+      </form>
+      <p id="form-msg" role="alert"></p>
+      <ul id="list"></ul>
+      <p class="empty" id="empty" hidden>Nobody here. Lucky day, or an empty wallet?</p>
+      <p class="note">Paid less = bigger slice, and a bigger chance.</p>
+      <div class="paid-tools">
+        <button id="undo" type="button" hidden></button>
+        <button id="reset" type="button" hidden>Reset paid counts</button>
+      </div>
+    </div>
+  </section>
+</main>
+
+<div id="winner-screen" role="dialog" aria-modal="true" aria-labelledby="winner-name winner-line" hidden>
+  <p id="winner-name"></p>
+  <p id="winner-line" lang="ta-Latn">Inniku nee thaan!</p>
+  <button id="winner-close" type="button">Close</button>
+</div>
+
+<canvas id="confetti" aria-hidden="true" hidden></canvas>
+
+<script>
+(function () {
+  'use strict';
+
+  var DEFAULT_NAMES = ['Arun', 'Priya', 'Karthik', 'Divya'];
+  var MAX_NAMES = 12;
+  var STORAGE_KEY = 'who-pays-today:names';
+  var SPIN_MS = 5200;
+  var REVEAL_DELAY_MS = 800;   // a beat to see the wheel land before the big reveal
+  var PAID_KEY = 'who-pays-today:paid';
+  var GUARANTEED_SHARE = 0.35; // this part of the wheel is split evenly, so no slice ever vanishes
+  var RESIZE_MS = 700;
+  var TICKS_PER_TURN = 12;
+  var MIN_TICK_GAP_S = 0.045;  // stops the fast start blurring into a buzz
+  var INK = '#1c1410';
+  var PALETTE = ['#ffb627', '#ff5d8f', '#2ec4b6', '#ff8a3d', '#b8e62e', '#5cc8f2', '#ff7a6b', '#c3a2ff'];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var wrap = $('wheel-wrap');
+  var wheel = $('wheel');
+  var pointer = $('pointer');
+  var result = $('result');
+  var line1 = $('line1');
+  var line2 = $('line2');
+  var spinBtn = $('spin');
+  var form = $('add-form');
+  var input = $('new-name');
+  var addBtn = $('add');
+  var formMsg = $('form-msg');
+  var list = $('list');
+  var empty = $('empty');
+  var count = $('count');
+  var undoBtn = $('undo');
+  var resetBtn = $('reset');
+  var confettiCanvas = $('confetti');
+  var reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+  var app = document.querySelector('.app');
+  var winnerScreen = $('winner-screen');
+  var winnerName = $('winner-name');
+  var winnerClose = $('winner-close');
+
+  var names = loadNames();
+  var paid = loadPaid();  // times paid, by lowercase name; kept when someone is removed
+  var shares = targetShares();  // each slice's part of the wheel, as currently drawn
+  var lastPaidName = null;
+  var landedFraction = 0; // where the pointer stopped inside the winner's slice
+  var resizeFrame = null;
+  var resetTimer = null;
+  var spinning = false;
+  var winner = null;      // index into names once a spin has landed
+  var rotation = 0;       // current wheel rotation, degrees clockwise
+  var revealTimer = null;
+  var winnerOpenedAt = 0;
+  var audio = null;
+  var lastTickTime = 0;
+
+  /* ---------- Saved names ---------- */
+  function loadNames() {
+    try {
+      var saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+      if (Array.isArray(saved) && saved.length <= MAX_NAMES &&
+          saved.every(function (n) { return typeof n === 'string' && n.length > 0; })) {
+        return saved;
+      }
+    } catch (e) { /* storage blocked or corrupt: fall through */ }
+    return DEFAULT_NAMES.slice();
+  }
+
+  function saveNames() {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(names)); } catch (e) { /* not essential */ }
+  }
+
+  function loadPaid() {
+    var clean = Object.create(null); // no inherited keys, so a friend called "constructor" is safe
+    try {
+      var saved = JSON.parse(localStorage.getItem(PAID_KEY));
+      if (saved && typeof saved === 'object' && !Array.isArray(saved)) {
+        Object.keys(saved).forEach(function (k) {
+          if (Number.isInteger(saved[k]) && saved[k] > 0) clean[k] = saved[k];
+        });
+      }
+    } catch (e) { /* storage blocked or corrupt: start from zero */ }
+    return clean;
+  }
+
+  function savePaid() {
+    try { localStorage.setItem(PAID_KEY, JSON.stringify(paid)); } catch (e) { /* not essential */ }
+  }
+
+  function paidCount(name) {
+    return paid[name.toLowerCase()] || 0;
+  }
+
+  /* Slice sizes: each extra payment beyond the lowest count shrinks a person's slice. */
+  function targetShares() {
+    var n = names.length;
+    if (n === 0) return [];
+    var counts = names.map(paidCount);
+    var lowest = Math.min.apply(null, counts);
+    var weights = counts.map(function (c) { return 1 / (1 + c - lowest); });
+    var total = weights.reduce(function (a, b) { return a + b; }, 0);
+    return weights.map(function (w) {
+      return GUARANTEED_SHARE / n + (1 - GUARANTEED_SHARE) * w / total;
+    });
+  }
+
+  function shareBefore(i) {
+    var sum = 0;
+    for (var k = 0; k < i; k++) sum += shares[k];
+    return sum;
+  }
+
+  /* Neighbouring slices never share a colour, including last against first. */
+  function colorFor(i) {
+    if (i === names.length - 1 && i > 0 && i % PALETTE.length === 0) return PALETTE[3];
+    return PALETTE[i % PALETTE.length];
+  }
+
+  /* ---------- Drawing the wheel ---------- */
+  function drawWheel() {
+    var size = wrap.clientWidth;
+    if (!size) return;
+    var dpr = Math.min(window.devicePixelRatio || 1, 3);
+    wheel.width = Math.round(size * dpr);
+    wheel.height = Math.round(size * dpr);
+
+    var ctx = wheel.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    var c = size / 2;
+    var rimWidth = size * 0.045;
+    var r = c - rimWidth;
+
+    // Rim
+    ctx.beginPath();
+    ctx.arc(c, c, c, 0, Math.PI * 2);
+    ctx.fillStyle = INK;
+    ctx.fill();
+
+    var n = names.length;
+    if (n === 0) {
+      ctx.beginPath();
+      ctx.arc(c, c, r, 0, Math.PI * 2);
+      ctx.fillStyle = '#2a666c';
+      ctx.fill();
+    } else {
+      var start = -Math.PI / 2 - shares[0] * Math.PI * 2;
+      var arc = shares[0] * Math.PI * 2;
+      for (var i = 0; i < n; i++) {
+        start += arc;
+        arc = shares[i] * Math.PI * 2;
+        ctx.beginPath();
+        ctx.moveTo(c, c);
+        ctx.arc(c, c, r, start, start + arc);
+        ctx.closePath();
+        ctx.fillStyle = colorFor(i);
+        ctx.fill();
+        if (n > 1) {
+          ctx.lineWidth = 3;
+          ctx.strokeStyle = INK;
+          ctx.stroke();
+        }
+        drawName(ctx, names[i], c, r, start + arc / 2, arc);
+
+        // After a spin, everyone except the winner fades back
+        if (winner !== null && i !== winner) {
+          ctx.beginPath();
+          ctx.moveTo(c, c);
+          ctx.arc(c, c, r, start, start + arc);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(11, 58, 64, .68)';
+          ctx.fill();
+        }
+      }
+    }
+
+    // Marquee bulbs on the rim
+    var bulbs = 24;
+    for (var b = 0; b < bulbs; b++) {
+      var a = b / bulbs * Math.PI * 2;
+      ctx.beginPath();
+      ctx.arc(c + Math.cos(a) * (c - rimWidth / 2), c + Math.sin(a) * (c - rimWidth / 2), rimWidth * 0.26, 0, Math.PI * 2);
+      ctx.fillStyle = b % 2 ? '#ffb627' : '#fff6e0';
+      ctx.fill();
+    }
+  }
+
+  function drawName(ctx, name, c, r, angle, arc) {
+    var outer = r * 0.93;
+    var maxWidth = r * 0.66;   // room between the rim and the hub
+    var fontSize = r * 0.17;
+    if (arc < Math.PI) {
+      fontSize = Math.min(fontSize, 2 * r * 0.6 * Math.tan(arc / 2) * 0.72);
+    }
+    ctx.save();
+    ctx.translate(c, c);
+    ctx.rotate(angle);
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = INK;
+    var family = getComputedStyle(document.body).fontFamily;
+    ctx.font = '800 ' + fontSize + 'px ' + family;
+    var width = ctx.measureText(name).width;
+    if (width > maxWidth) {
+      fontSize *= maxWidth / width;
+      ctx.font = '800 ' + fontSize + 'px ' + family;
+    }
+    ctx.fillText(name, outer, 0);
+    ctx.restore();
+  }
+
+  /* ---------- Page state ---------- */
+  function setMessage(first, second, isWinner) {
+    line1.textContent = first;
+    line2.textContent = second;
+    result.classList.remove('is-winner');
+    if (isWinner) {
+      void result.offsetWidth; // restart the pop animation
+      result.classList.add('is-winner');
+    }
+  }
+
+  function showIdleMessage() {
+    if (names.length === 0) setMessage('No names yet', 'Add a friend below to spin.');
+    else setMessage('Who’s buying the tea?', 'Press Spin to find out.');
+  }
+
+  function render() {
+    list.textContent = '';
+    names.forEach(function (name, i) {
+      var li = document.createElement('li');
+      li.style.background = colorFor(i);
+      var label = document.createElement('span');
+      label.className = 'chip-name';
+      label.textContent = name;
+      var paidLabel = document.createElement('span');
+      paidLabel.className = 'chip-count';
+      paidLabel.textContent = 'paid ' + paidCount(name);
+      var remove = document.createElement('button');
+      remove.type = 'button';
+      remove.textContent = '×';
+      remove.setAttribute('aria-label', 'Remove ' + name);
+      remove.disabled = spinning;
+      remove.addEventListener('click', function () { removeName(i); });
+      li.appendChild(label);
+      li.appendChild(paidLabel);
+      li.appendChild(remove);
+      list.appendChild(li);
+    });
+    empty.hidden = names.length > 0;
+    count.textContent = names.length + ' of ' + MAX_NAMES;
+    undoBtn.hidden = !lastPaidName;
+    undoBtn.disabled = spinning;
+    if (lastPaidName) undoBtn.textContent = 'Undo last spin (' + lastPaidName + ')';
+    resetBtn.hidden = Object.keys(paid).length === 0;
+    resetBtn.disabled = spinning;
+    input.disabled = spinning;
+    addBtn.disabled = spinning;
+    spinBtn.disabled = spinning || names.length === 0;
+    spinBtn.textContent = spinning ? 'Spinning…' : (winner !== null ? 'Spin again' : 'Spin');
+    wheel.setAttribute('aria-label', names.length ? 'Spin wheel with ' + names.join(', ') : 'Empty spin wheel');
+  }
+
+  function namesChanged() {
+    clearTimeout(revealTimer);
+    settleShares();
+    winner = null;
+    saveNames();
+    showIdleMessage();
+    render();
+    drawWheel();
+  }
+
+  function addName(raw) {
+    var name = raw.replace(/\s+/g, ' ').trim();
+    if (!name) return 'Type a name first.';
+    if (names.length >= MAX_NAMES) return 'The wheel is full. ' + MAX_NAMES + ' names is the limit.';
+    var lower = name.toLowerCase();
+    if (names.some(function (n) { return n.toLowerCase() === lower; })) {
+      return name + ' is already on the wheel.';
+    }
+    names.push(name);
+    namesChanged();
+    return '';
+  }
+
+  function removeName(i) {
+    if (spinning) return;
+    names.splice(i, 1);
+    formMsg.textContent = '';
+    namesChanged();
+    var buttons = list.querySelectorAll('button');
+    var next = buttons[Math.min(i, buttons.length - 1)];
+    if (next) next.focus();
+  }
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    if (spinning) return;
+    var error = addName(input.value);
+    formMsg.textContent = error;
+    if (!error) input.value = '';
+  });
+
+  input.addEventListener('input', function () { formMsg.textContent = ''; });
+
+  /* ---------- Fixing the paid counts ---------- */
+  function disarmReset() {
+    clearTimeout(resetTimer);
+    resetTimer = null;
+    resetBtn.classList.remove('is-armed');
+    resetBtn.textContent = 'Reset paid counts';
+  }
+
+  undoBtn.addEventListener('click', function () {
+    if (spinning || !lastPaidName) return;
+    var key = lastPaidName.toLowerCase();
+    if (paid[key] > 1) paid[key] -= 1;
+    else delete paid[key];
+    lastPaidName = null;
+    savePaid();
+    namesChanged();
+    spinBtn.focus({ preventScroll: true });
+  });
+
+  // Wiping everyone's history takes a second tap, in case of a slip
+  resetBtn.addEventListener('click', function () {
+    if (spinning) return;
+    if (!resetTimer) {
+      resetBtn.classList.add('is-armed');
+      resetBtn.textContent = 'Tap again to reset everyone';
+      resetTimer = setTimeout(disarmReset, 4000);
+      return;
+    }
+    disarmReset();
+    paid = Object.create(null);
+    lastPaidName = null;
+    savePaid();
+    namesChanged();
+    spinBtn.focus({ preventScroll: true });
+  });
+
+  /* ---------- Resizing slices ---------- */
+  function settleShares() {
+    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+    resizeFrame = null;
+    shares = targetShares();
+  }
+
+  // Slides the slices to their new sizes, turning the wheel so the pointer stays on the winner.
+  function resizeSlices() {
+    if (winner === null) { settleShares(); drawWheel(); return; }
+    var from = shares.slice();
+    var to = targetShares();
+    var duration = reducedMotion.matches ? 0 : RESIZE_MS;
+    var startTime = null;
+    if (resizeFrame !== null) cancelAnimationFrame(resizeFrame);
+
+    function step(now) {
+      if (startTime === null) startTime = now;
+      var t = duration ? Math.min((now - startTime) / duration, 1) : 1;
+      var eased = 1 - Math.pow(1 - t, 3);
+      shares = from.map(function (s, i) { return s + (to[i] - s) * eased; });
+      var stop = (shareBefore(winner) + landedFraction * shares[winner]) * 360;
+      rotation = (360 - stop) % 360;
+      wheel.style.transform = 'rotate(' + rotation + 'deg)';
+      drawWheel();
+      resizeFrame = t < 1 ? requestAnimationFrame(step) : null;
+    }
+    if (duration) resizeFrame = requestAnimationFrame(step);
+    else step(0);
+  }
+
+  /* ---------- Tick sound ---------- */
+  // Browsers only allow sound after a tap, so this runs from the Spin press.
+  function unlockAudio() {
+    try {
+      var AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      if (!audio) audio = new AudioCtx();
+      if (audio.state === 'suspended') audio.resume();
+      lastTickTime = 0;
+    } catch (e) { audio = null; /* the wheel still works silently */ }
+  }
+
+  function playTick() {
+    if (!audio || audio.state !== 'running') return;
+    var now = audio.currentTime;
+    if (now - lastTickTime < MIN_TICK_GAP_S) return;
+    lastTickTime = now;
+    var osc = audio.createOscillator();
+    var gain = audio.createGain();
+    osc.type = 'square';
+    osc.frequency.setValueAtTime(1500, now);
+    osc.frequency.exponentialRampToValueAtTime(700, now + 0.025);
+    gain.gain.setValueAtTime(0.16, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.035);
+    osc.connect(gain);
+    gain.connect(audio.destination);
+    osc.start(now);
+    osc.stop(now + 0.04);
+  }
+
+  /* ---------- Full-screen winner ---------- */
+  // Tries the name on one line and with each word on its own line, and keeps whichever is bigger.
+  function fitWinnerName() {
+    var text = winnerName.dataset.name;
+    var maxWidth = winnerScreen.clientWidth - 32;
+    var maxHeight = window.innerHeight * 0.55;
+    var layouts = text.indexOf(' ') === -1 ? [text] : [text, text.replace(/ /g, '\n')];
+    var best = { size: 0, text: text };
+    winnerName.style.fontSize = '100px';
+    layouts.forEach(function (layout) {
+      winnerName.textContent = layout;
+      var size = 100 * Math.min(maxWidth / winnerName.offsetWidth, maxHeight / winnerName.offsetHeight);
+      if (size > best.size) best = { size: size, text: layout };
+    });
+    winnerName.textContent = best.text;
+    winnerName.style.fontSize = Math.floor(best.size * 0.98) + 'px';
+  }
+
+  function showWinnerScreen(i) {
+    winnerName.dataset.name = names[i];
+    winnerScreen.style.background = colorFor(i);
+    winnerScreen.hidden = false;
+    fitWinnerName();
+    document.body.classList.add('winner-open');
+    app.inert = true;
+    winnerOpenedAt = Date.now();
+    winnerClose.focus({ preventScroll: true });
+    if (!reducedMotion.matches) {
+      launchConfetti();
+      if (navigator.vibrate) navigator.vibrate([30, 40, 70]);
+    }
+  }
+
+  function closeWinnerScreen() {
+    if (winnerScreen.hidden) return;
+    winnerScreen.hidden = true;
+    document.body.classList.remove('winner-open');
+    app.inert = false;
+    spinBtn.focus({ preventScroll: true });
+    resizeSlices();
+  }
+
+  winnerClose.addEventListener('click', closeWinnerScreen);
+  winnerScreen.addEventListener('click', function (e) {
+    // Ignore a stray tap right as the screen appears, so nobody misses the reveal
+    if (e.target !== winnerClose && Date.now() - winnerOpenedAt > 700) closeWinnerScreen();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeWinnerScreen();
+  });
+  window.addEventListener('resize', function () {
+    if (!winnerScreen.hidden) fitWinnerName();
+  });
+
+  /* ---------- Spinning ---------- */
+  function sliceAt(deg, n) {
+    var atPointer = ((-deg % 360) + 360) % 360;
+    return Math.floor(atPointer / (360 / n)) % n;
+  }
+
+  function spin() {
+    if (spinning || names.length === 0) return;
+    clearTimeout(revealTimer);
+    settleShares();
+
+    // Chance matches slice size exactly: a random point on the wheel picks the winner
+    var point = Math.random();
+    var pick = names.length - 1;
+    for (var s = 0, sum = 0; s < names.length; s++) {
+      sum += shares[s];
+      if (point < sum) { pick = s; break; }
+    }
+    // Stop somewhere inside the slice, clear of the dividing lines
+    landedFraction = 0.12 + Math.random() * 0.76;
+    var stopInSlice = (shareBefore(pick) + landedFraction * shares[pick]) * 360;
+    var hadFocus = document.activeElement === spinBtn;
+
+    unlockAudio();
+    spinning = true;
+    winner = null;
+    formMsg.textContent = '';
+    setMessage('Round and round…', 'Someone’s wallet is getting nervous.');
+    render();
+    drawWheel();
+
+    // If they scrolled down to edit names, bring the wheel back into view
+    if (wrap.getBoundingClientRect().top < 0) {
+      window.scrollTo({ top: 0, behavior: reducedMotion.matches ? 'auto' : 'smooth' });
+    }
+
+    var finish = function () {
+      rotation = ((rotation % 360) + 360) % 360;
+      wheel.style.transform = 'rotate(' + rotation + 'deg)';
+      pointer.style.transform = '';
+      spinning = false;
+      winner = pick;
+      // Counted now and saved straight away; slices only resize once the reveal is closed
+      var paidKey = names[pick].toLowerCase();
+      paid[paidKey] = (paid[paidKey] || 0) + 1;
+      lastPaidName = names[pick];
+      savePaid();
+      setMessage(names[pick], 'pays for tea today! ☕', true);
+      render();
+      drawWheel();
+      if (hadFocus) spinBtn.focus({ preventScroll: true });
+      if (reducedMotion.matches) showWinnerScreen(pick);
+      else revealTimer = setTimeout(function () { showWinnerScreen(pick); }, REVEAL_DELAY_MS);
+    };
+
+    var from = rotation;
+    var offset = (((360 - stopInSlice - from) % 360) + 360) % 360;
+    var to = from + offset;
+
+    if (reducedMotion.matches) {
+      rotation = to;
+      finish();
+      return;
+    }
+
+    to += (6 + Math.floor(Math.random() * 3)) * 360;
+    var startTime = null;
+    var lastTick = sliceAt(from, TICKS_PER_TURN);
+    var flick = 0;
+
+    function frame(now) {
+      if (startTime === null) startTime = now;
+      var t = Math.min((now - startTime) / SPIN_MS, 1);
+      var eased = 1 - Math.pow(1 - t, 4);
+      rotation = from + (to - from) * eased;
+      wheel.style.transform = 'rotate(' + rotation + 'deg)';
+
+      // The pointer flicks and ticks as each mark passes under it
+      var currentTick = sliceAt(rotation, TICKS_PER_TURN);
+      if (currentTick !== lastTick) {
+        lastTick = currentTick;
+        flick = -22;
+        playTick();
+      }
+      flick *= 0.8;
+      pointer.style.transform = 'rotate(' + flick + 'deg)';
+
+      if (t < 1) requestAnimationFrame(frame);
+      else finish();
+    }
+    requestAnimationFrame(frame);
+  }
+
+  spinBtn.addEventListener('click', spin);
+
+  /* ---------- Confetti ---------- */
+  var particles = [];
+  var confettiRunning = false;
+
+  function sizeConfetti() {
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
+    confettiCanvas.width = Math.round(window.innerWidth * dpr);
+    confettiCanvas.height = Math.round(window.innerHeight * dpr);
+    confettiCanvas.getContext('2d').setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+
+  function launchConfetti() {
+    var w = window.innerWidth;
+    var h = window.innerHeight;
+    var power = Math.max(h, 560);
+    var colors = PALETTE.concat(['#fff6e0']);
+
+    function shoot(x, y, angleDeg, spreadDeg, amount) {
+      for (var i = 0; i < amount; i++) {
+        var a = (angleDeg + (Math.random() - 0.5) * spreadDeg) * Math.PI / 180;
+        var speed = power * (0.7 + Math.random() * 0.95);
+        particles.push({
+          x: x,
+          y: y,
+          vx: Math.cos(a) * speed,
+          vy: Math.sin(a) * speed,
+          size: 6 + Math.random() * 7,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          round: Math.random() < 0.25,
+          spin: Math.random() * Math.PI * 2,
+          spinSpeed: (Math.random() - 0.5) * 14,
+          flip: Math.random() * Math.PI * 2,
+          flipSpeed: 4 + Math.random() * 8,
+          age: 0
+        });
+      }
+    }
+
+    // Cannons from both bottom corners, plus a pop from the middle
+    shoot(0, h, -62, 40, 80);
+    shoot(w, h, -118, 40, 80);
+    shoot(w / 2, h * 0.42, -90, 130, 60);
+
+    confettiCanvas.hidden = false;
+    sizeConfetti();
+    if (!confettiRunning) {
+      confettiRunning = true;
+      requestAnimationFrame(confettiFrame);
+    }
+  }
+
+  var lastConfettiTime = null;
+
+  function confettiFrame(now) {
+    var ctx = confettiCanvas.getContext('2d');
+    var dt = lastConfettiTime === null ? 0.016 : Math.min((now - lastConfettiTime) / 1000, 0.05);
+    lastConfettiTime = now;
+    var h = window.innerHeight;
+    var gravity = Math.max(h, 560) * 1.25;
+    ctx.clearRect(0, 0, window.innerWidth, h);
+
+    particles = particles.filter(function (p) {
+      p.age += dt;
+      p.vx *= Math.pow(0.35, dt);
+      p.vy = p.vy * Math.pow(0.35, dt) + gravity * dt;
+      p.x += p.vx * dt;
+      p.y += p.vy * dt;
+      p.spin += p.spinSpeed * dt;
+      p.flip += p.flipSpeed * dt;
+      if (p.y > h + 30 || p.age > 6) return false;
+
+      ctx.save();
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.spin);
+      ctx.scale(1, Math.cos(p.flip));
+      ctx.fillStyle = p.color;
+      if (p.round) {
+        ctx.beginPath();
+        ctx.arc(0, 0, p.size / 2, 0, Math.PI * 2);
+        ctx.fill();
+      } else {
+        ctx.fillRect(-p.size / 2, -p.size / 3, p.size, p.size * 0.66);
+      }
+      ctx.restore();
+      return true;
+    });
+
+    if (particles.length) {
+      requestAnimationFrame(confettiFrame);
+    } else {
+      confettiRunning = false;
+      lastConfettiTime = null;
+      confettiCanvas.hidden = true;
+    }
+  }
+
+  window.addEventListener('resize', function () {
+    if (confettiRunning) sizeConfetti();
+  });
+
+  /* ---------- Start ---------- */
+  if ('ResizeObserver' in window) new ResizeObserver(drawWheel).observe(wrap);
+  else window.addEventListener('resize', drawWheel);
+
+  showIdleMessage();
+  render();
+  drawWheel();
+})();
+</script>
+</body>
+</html>
