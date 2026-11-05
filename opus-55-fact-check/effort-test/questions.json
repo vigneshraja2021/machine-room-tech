@@ -1,0 +1,62 @@
+[
+ {
+  "id": "digitsum",
+  "prompt": "How many integers n with 1 <= n <= 1,000,000 have a digit sum of exactly 20?",
+  "answer": "35127"
+ },
+ {
+  "id": "domino",
+  "prompt": "In how many ways can a 3 x 12 rectangle be tiled with 1 x 2 dominoes?",
+  "answer": "2131"
+ },
+ {
+  "id": "product",
+  "prompt": "What is 987654321 x 123456789? Give the exact integer.",
+  "answer": "121932631112635269"
+ },
+ {
+  "id": "twins",
+  "prompt": "How many primes p < 10,000 are there such that p + 2 is also prime?",
+  "answer": "205"
+ },
+ {
+  "id": "python",
+  "prompt": "What exactly does this Python 3 program print?\n\ndef make(n, acc=[]):\n    acc.append(n)\n    return [lambda x: x + i for i in range(n)], acc\n\ntotal = 0\nfor k in (2, 3, 4):\n    fs, acc = make(k)\n    total += sum(f(len(acc)) for f in fs)\nprint(total, len(acc))",
+  "answer": "40 3"
+ },
+ {
+  "id": "letters",
+  "prompt": "How many times does the letter e (upper or lower case) appear in this sentence?\n\nEvery evening the engineers gathered beside the generator shed, where sixteen green levers were kept freshly greased, and they debated whether the eleven emergency breakers needed replacement before the western feeder exceeded its expected seasonal peak.",
+  "answer": "67"
+ },
+ {
+  "id": "perms",
+  "prompt": "How many permutations of {1,...,8} have no fixed points and no 2-cycles?",
+  "answer": "8988"
+ },
+ {
+  "id": "squares",
+  "prompt": "What is the smallest integer n > 2000 that can be written as a^2 + b^2 with positive integers a <= b in exactly 3 different ways?",
+  "answer": "2050"
+ },
+ {
+  "id": "knight",
+  "prompt": "A chess knight starts on a1 and must reach h8 on a standard 8x8 board. These squares are blocked and cannot be landed on: b3, d4, e5, f6, c5, f3, e7, g5, e3, d6. What is the minimum number of moves?",
+  "answer": "6"
+ },
+ {
+  "id": "josephus",
+  "prompt": "1000 people stand in a circle, numbered 1 to 1000. Starting the count at person 1, every 7th person is removed, and counting continues from the next person. What is the number of the last person left?",
+  "answer": "404"
+ },
+ {
+  "id": "bits",
+  "prompt": "How many binary strings of length 20 contain no three consecutive equal bits (neither 000 nor 111)?",
+  "answer": "21892"
+ },
+ {
+  "id": "pow2",
+  "prompt": "What is the sum of the decimal digits of 2^200?",
+  "answer": "256"
+ }
+]
